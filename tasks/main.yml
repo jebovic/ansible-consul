@@ -1,5 +1,14 @@
 ---
 
+- name: install dependencies apt packages
+  apt:
+    name: "{{ item }}"
+    state:              latest
+    install_recommends: false
+    update_cache:       yes
+    cache_valid_time:   300
+  with_items: "{{ consul_dep_packages }}"
+
 - name: check install, data & config directory
   file:
     path: "{{ item }}"
