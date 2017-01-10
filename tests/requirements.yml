@@ -1,0 +1,4 @@
+---
+
+- src: jebovic.supervisor
+  name: supervisor

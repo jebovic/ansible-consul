@@ -1,0 +1,45 @@
+env:
+  - distro: debianjessie
+    init: "/sbin/init"
+    run_opts: ""
+    playbook: test.yml
+  - distro: ubuntutrusty
+    init: "/sbin/init"
+    run_opts: ""
+    playbook: test.yml
+  - distro: ubuntuxenial
+    init: "/sbin/init"
+    run_opts: ""
+    playbook: test.yml
+
+services:
+  - docker
+
+before_install:
+  - docker pull jebovic/${distro}-ansible:latest
+
+script:
+  # run container
+  - container_id=$(mktemp)
+  - docker run --detach --privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro -p 8500:8500 --volume="${PWD}":/etc/ansible/roles/role_under_test:ro ${run_opts} jebovic/${distro}-ansible:latest "${init}" > "${container_id}"
+  # Install dependencies.
+  - docker exec "$(cat ${container_id})" ansible-galaxy install -r /etc/ansible/roles/role_under_test/tests/requirements.yml
+  # syntax checking
+  - docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible-playbook /etc/ansible/roles/role_under_test/tests/${playbook} --syntax-check
+  # test role
+  - docker exec "$(cat ${container_id})" env TERM=xterm ansible-playbook /etc/ansible/roles/role_under_test/tests/${playbook}
+  # test role idempotence
+  - idempotence=$(mktemp)
+  - docker exec "$(cat ${container_id})" ansible-playbook /etc/ansible/roles/role_under_test/tests/${playbook} | tee -a ${idempotence}
+  - >
+    tail ${idempotence}
+    | grep -q 'changed=0.*failed=0'
+    && (echo 'Idempotence test: pass' && exit 0)
+    || (echo 'Idempotence test: fail' && exit 1)
+  # test role tasks
+  - curl http://localhost:8500
+
+notifications:
+  webhooks: https://galaxy.ansible.com/api/v1/notifications/
+  slack:
+    secure: K7QwTugLTHH1fgmcsR2KL/pukpz9cGxo7MvFox7/Br58ODoyJ+Xedcju81vTeNYOv4nbZoD0JOSN4kkrAhB+wGhNYdOyqkCCvTqjEUG7al8bVBIUJsdcK0Cze8fGuxWTWL5s2E3TjuZApqct7s2mZduaOutyr0WnMj52JhM3r9j+JKTFXB5bRWMY4zw7GXPR67pZDNwcLQPDAuP/91VWS7EgTCs1eqA7XZzlPcIC5b0NUey8qwtMnrio6W2AoDvdYy8Ha2jPDiq3s7nVxaEG4VBf6VRrcI8ti56i6cli1KqM5R9YVJtQOImGybPPHYubYWNZ35CTuBIAc1DLv47j/HKNWWpVl2ScgY/Pfn9M09+2ewI710sGxXbJ7Ah29aH8cT4phMZw50Qx4td3dSIDgGY/FT5mcvM1mYMCjlq0GcGLy0anEkXG/dXSelNphF5U1hzu+yHb3ZU4PMpiU2KQLhy6kcHk8rfxmBkTwvfgkgzs+avWAicWbiHm8oKhFG1ZWibgQG09CDMsgyGjqtP1FK5L5F4o5xwl0xB9HdBTgPu58fpZWTsXIgR0fFXlb28nr98N1uML3VWgk7uGHSB5Ni99jEf9tyvQWUcoKP2xFNaNhJfjie5ZxKvLKw6jjiNJS/jlPU3e1tn6NQLvCqexhSR5klEOyhhJDtIuHxsyWGo=

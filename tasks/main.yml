@@ -1,0 +1,35 @@
+---
+
+- name: check install, data & config directory
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ consul_install_dir }}"
+    - "{{ consul_config_dir }}"
+    - "{{ consul_data_dir }}"
+
+- name: download & extract consul
+  unarchive:
+    src: "{{ consul_tarball_url }}"
+    dest: "{{ consul_install_dir }}"
+    owner: root
+    group: root
+    mode: 0755
+    remote_src: yes
+
+- name: services config
+  template:
+    src: services.json.j2
+    dest: "{{ consul_config_dir }}/service_{{ item.name }}.json"
+  with_items: "{{ consul_services }}"
+  notify: restart consul
+  tags: consul_config
+
+- name: checks config
+  template:
+    src: checks.json.j2
+    dest: "{{ consul_config_dir }}/check_{{ item.name }}.json"
+  with_items: "{{ consul_checks }}"
+  notify: restart consul
+  tags: consul_config
