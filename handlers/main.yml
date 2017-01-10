@@ -1,6 +1,12 @@
 ---
 
 - name: restart consul
+  wait_for:
+    port: "{{ consul_http_port }}"
+    delay: 10
+  notify: do restart consul
+
+- name: do restart consul
   supervisorctl:
     name: consul
     state: restarted

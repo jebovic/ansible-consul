@@ -10,5 +10,6 @@ consul_config_dir: /etc/consul/conf.d
 consul_data_dir: /var/consul
 
 # Consul configuration
+consul_http_port: 8500
 consul_services: []
 consul_checks: []
