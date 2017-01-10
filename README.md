@@ -17,6 +17,8 @@ Role Variables
 
 ```yaml
 # Consul installation configuration
+consul_dep_packages:
+  - unzip
 consul_install_dir: /usr/local/bin
 consul_bin_path: "{{ consul_install_dir }}/consul"
 consul_tarball_url: https://releases.hashicorp.com/consul/0.7.2/consul_0.7.2_linux_amd64.zip
@@ -24,6 +26,7 @@ consul_config_dir: /etc/consul/conf.d
 consul_data_dir: /var/consul
 
 # Consul configuration
+consul_http_port: 8500
 consul_services: []
 consul_checks: []
 ```
