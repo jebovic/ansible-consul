@@ -4,9 +4,9 @@
   apt:
     name: "{{ item }}"
     state:              latest
-    install_recommends: false
+    install_recommends: no
     update_cache:       yes
-    cache_valid_time:   300
+    cache_valid_time:   86400
   with_items: "{{ consul_dep_packages }}"
 
 - name: check install, data & config directory
@@ -18,14 +18,25 @@
     - "{{ consul_config_dir }}"
     - "{{ consul_data_dir }}"
 
-- name: download & extract consul
+- name: "download consul"
+  get_url:
+    url: "{{ consul_tarball_url }}"
+    dest: "{{ consul_tmp_full_path }}"
+    owner: root
+    group: root
+    mode: 0755
+  register: consul_download
+
+- name: extract consul
   unarchive:
-    src: "{{ consul_tarball_url }}"
+    src: "{{ consul_tmp_full_path }}"
     dest: "{{ consul_install_dir }}"
     owner: root
     group: root
     mode: 0755
     remote_src: yes
+  notify: restart consul
+  when: consul_download|changed
 
 - name: services config
   template:
