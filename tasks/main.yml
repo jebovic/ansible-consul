@@ -3,10 +3,10 @@
 - name: install dependencies apt packages
   apt:
     name: "{{ item }}"
-    state:              latest
+    state: latest
     install_recommends: no
-    update_cache:       yes
-    cache_valid_time:   86400
+    update_cache: yes
+    cache_valid_time: 86400
   with_items: "{{ consul_dep_packages }}"
 
 - name: check install, data & config directory
