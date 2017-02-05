@@ -38,6 +38,13 @@
   notify: restart consul
   when: consul_download|changed
 
+- name: config
+  template:
+    src: config.json.j2
+    dest: "{{ consul_config_dir }}/config.json"
+  notify: restart consul
+  tags: consul_config
+
 - name: services config
   template:
     src: services.json.j2
