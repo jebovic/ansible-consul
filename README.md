@@ -37,6 +37,7 @@ consul_data_dir: /var/consul
 
 # Consul configuration
 consul_http_port: 8500
+consul_config: []
 consul_services: []
 consul_checks: []
 ```
@@ -55,6 +56,11 @@ Example : config
 ----------------
 
 ```yaml
+# Consul global config
+consul_config:
+  datacenter: local-dc1
+  acl_datacenter: local-dc1
+  acl_master_token: "{{ secret_consul_master_token }}" # from _vars_enc.yml (ansible vaulted)
 # Consul services definitions
 consul_services:
   - name: api-platform
